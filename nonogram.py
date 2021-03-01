@@ -11,62 +11,57 @@ ROWS = 6
 COLUMNS = 6
 Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
 
+#array that describes the rows of the matrix, up to down
+rows_arr = ["2 1", "1 3", "1 2", "3", "4", "1"]
+#array that describes the columns of the matrix, left to right
+columns_arr = ["1", "5", "2", "5", "2 1", "2"]
+
+"""
 Matrix[0][3] = state.White
 Matrix[0][4] = state.White
 Matrix[2][4] = state.Black
 Matrix[2][5] = state.Black
+"""
 
 
 def main():
 
-    
+    has_improvement = True
 
-    #array that describes the rows of the matrix, up to down
-    rowsArr = ["2 1", "1 3", "1 2", "3", "4", "1"]
-    #array that describes the columns of the matrix, left to right
-    columnsArr = ["1", "5", "2", "5", "2 1", "2"]
-
-    printNonogram(Matrix)
-    solve1Iteration(Matrix, rowsArr, columnsArr)
-    printNonogram(Matrix)
-
-    hasImprovement = True
-
-    while hasImprovement:
-        hasImprovement = solve1Iteration(Matrix, rowsArr, columnsArr)
+    while has_improvement:
+        has_improvement = solve_1_iteration()
 
     #check if the nonogram was finished:
-    if (nonogramWasSolved(Matrix)):
+    if (nonogram_was_solved()):
         print("finished successfully!")
-        printNonogram(Matrix)
+        print_nonogram()
     else:
         print("not succeeded finishing nonogram")
-        printNonogram(Matrix)
+        print_nonogram()
         
     
-def solve1Iteration(Matrix, rowsArr, columnsArr):
-    # Matrix[5][5] = state.White
-    hasImprovement = False
+def solve_1_iteration():
+    has_improvement = False
 
     for i in range(0, ROWS):
-        tmp_HasImp = update1Row(Matrix, rowsArr[i])
-        if tmp_HasImp: 
-            hasImprovement = True
+        tmp_has_imp = update_1_row(rows_arr[i], i)
+        if tmp_has_imp: 
+            has_improvement = True
 
     for i in range(0, COLUMNS):
-        tmp_HasImp = update1Column(Matrix, columnsArr[i])
-        if tmp_HasImp: 
-            hasImprovement = True
+        tmp_has_imp = update_1_column(columns_arr[i], i)
+        if tmp_has_imp: 
+            has_improvement = True
 
-    return hasImprovement
+    return has_improvement
 
-def update1Row(Matrix, row):
+def update_1_row(row, row_idx):
     x=1
 
-def update1Column(Matrix, column):
+def update_1_column(column, column_idx):
     x=1
 
-def printNonogram(Matrix):
+def print_nonogram():
     for line in Matrix:
         for var in line:
             if var is state.Unknown:
@@ -77,15 +72,14 @@ def printNonogram(Matrix):
                 print('%', end=" ")
         print("")
 
-
-def nonogramWasSolved(Matrix):
+        
+def nonogram_was_solved():
     for line in Matrix:
         for var in line:
             if var is state.Unknown:
                 return False
     return True
 
-#TODO: check if the matrix changes in function's call
 
 if __name__ == "__main__":
     main()
