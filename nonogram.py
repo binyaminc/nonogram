@@ -6,16 +6,19 @@ class state(Enum):
     Unknown = 0
     White = -1
     
+    
+# this example creates אייל
 
-ROWS = 6
-COLUMNS = 6
+ROWS = 15
+COLUMNS = 15
 Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
 
 
 #array that describes the rows of the matrix, up to down
-values_rows_arr = [[2, 1], [1, 3], [1, 2], [3], [4], [1]]
+values_rows_arr = [[2,2,2,1], [2,2,1,1,2,1], [4,1,1,2,1], [5,5], [2,5],[7], [1,1,5], [11], [12], [13],[8,5], [1,3,5], [5,5], [3,6], [6]]
 #array that describes the columns of the matrix, left to right
-values_columns_arr = [[1], [5], [2], [5], [2, 1], [2]]
+values_columns_arr = [[2], [3,3], [2,2,2], [4,6], [5,7],[2,7], [3,1,4], [7], [2,4], [2,6,2],[12], [15], [4,10], [1,9], [4,8]]
+
 
 
 def main():
@@ -43,16 +46,16 @@ def solve_1_iteration():
         if tmp_has_imp: 
             has_improvement = True
 
-    print("after rows iteration:")
-    print_nonogram()  # to debug purposes
+    #print("after rows iteration:")
+    #print_nonogram()  # to debug purposes
 
     for i in range(0, COLUMNS):
         tmp_has_imp = update_1_column(values_columns_arr[i], i)
         if tmp_has_imp: 
             has_improvement = True
     
-    print("after columns iteration:")
-    print_nonogram()
+    #print("after columns iteration:")
+    #print_nonogram()
 
     return has_improvement
 
@@ -179,11 +182,11 @@ def print_nonogram():
     for line in Matrix:
         for var in line:
             if var is state.Unknown:
-                print('-', end=" ")
+                print('~~', end="")  # '-' another option
             elif var is state.White:
-                print('·', end=" ")
+                print('  ', end="")  # '·' another option
             elif var is state.Black:
-                print('%', end=" ")
+                print('██', end="")  # %
         print("")
 
         
@@ -199,25 +202,51 @@ if __name__ == "__main__":
     main()
 
 
+# TODO: using pyInstaller to convert to .exe
+# The main issue to convert it to a single file
 """
 
-Matrix[0][0] = state.Black
-Matrix[1][0] = state.White
-Matrix[2][0] = state.White
-Matrix[3][0] = state.White
-Matrix[4][0] = state.White
-Matrix[5][0] = state.White
+# this example creates אייל
+
+ROWS = 15
+COLUMNS = 15
+Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
 
 
-Matrix[1][1] = state.Black
-Matrix[2][1] = state.Black
-Matrix[3][1] = state.Black
-Matrix[4][1] = state.Black
+#array that describes the rows of the matrix, up to down
+values_rows_arr = [[2,2,2,1], [2,2,1,1,2,1], [4,1,1,2,1], [5,5], [2,5],[7], [1,1,5], [11], [12], [13],[8,5], [1,3,5], [5,5], [3,6], [6]]
+#array that describes the columns of the matrix, left to right
+values_columns_arr = [[2], [3,3], [2,2,2], [4,6], [5,7],[2,7], [3,1,4], [7], [2,4], [2,6,2],[12], [15], [4,10], [1,9], [4,8]]
 
-Matrix[1][3] = state.Black
-Matrix[2][3] = state.Black
-Matrix[3][3] = state.Black
-Matrix[4][3] = state.Black
+
+
+
+ROWS = 80
+COLUMNS = 80
+Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
+
+# in the middle of filling it in... 
+
+#array that describes the rows of the matrix, up to down
+values_rows_arr = [[2], [2,1,1], [1,2,3], [1,1,2,2], [1,4,1,2,1],
+                   [1,2,4,1], [2,1,2,2,2,2], [3,1,2,2,1,2,1], [1,4,1,1,2,3,2], [1,2,2,2,1,2,3,2],
+                   [1,3,2,3,3,1], [2,1,1,3,1,1,1,2,5], [2,2,3,3,1,4,1], [2,3,7,2,7,1], [5,1,1,2,3,3,5,1,2],
+                   [2,2,3,4,6,7,1,1], [4,5,6,2,10,1,2,2], [2,2,7,6,1,7,1,2,2,3], [4,6,6,16,2,1,2,1], [2,2,1,5,9,3,2,3,2,3],
+                   [3,3,9,4,4,3,2,3,1], [5,2,10,1,1,3,4,2,4,1], [3,3,5,3,4,1,1,3,4,3,5,3,1], [2,1,9,2,1,1,1,3,12,2,2], [1,2,1,7,2,3,1,3,9,2,1],
+                   [2,1,3,1,3,4,1,3,4,1,2,2], [3,6,2,3,3,1,2,4,2,4,3], [3,2,3,9,2,4,8], [3,2,3,5,3,2,1,1,1,1,2], [3,2,10,2,1,2,1,1,1,1,1,2],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], []]
+#array that describes the columns of the matrix, left to right
+values_columns_arr = [[], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], [],
+                   [], [], [], [], []]
 
 
 """
