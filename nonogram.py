@@ -43,12 +43,16 @@ def solve_1_iteration():
         if tmp_has_imp: 
             has_improvement = True
 
-    print_nonogram()
+    print("after rows iteration:")
+    print_nonogram()  # to debug purposes
 
     for i in range(0, COLUMNS):
         tmp_has_imp = update_1_column(values_columns_arr[i], i)
         if tmp_has_imp: 
             has_improvement = True
+    
+    print("after columns iteration:")
+    print_nonogram()
 
     return has_improvement
 
@@ -58,8 +62,8 @@ def update_1_row(row_values, row_idx):
     perms = rec_get_perms(unknown_row, row_values)  #  meanwhile_content starts "empty"
     
     # get valid permutations according to the current content of the matrix
-    line_content = Matrix[row_idx][:]  # [:] to have a shallow copy
-    con_filter = get_filter(line_content)  # contradiction filter - to delete all those who contradict the currently known values (line_content)
+    row_content = Matrix[row_idx][:]  # [:] to have a shallow copy
+    con_filter = get_filter(row_content)  # contradiction filter - to delete all those who contradict the currently known values (row_content)
     valid_perms = list(filter(con_filter, perms))
     
     #find the 'agreed' values and update the matrix
@@ -68,14 +72,35 @@ def update_1_row(row_values, row_idx):
     
     # return whether there was an improvement
     has_improvement = False
-    if has_diff(line_content, intersection):
+    if has_diff(row_content, intersection):
         has_improvement = True
     return has_improvement
 
 
-def update_1_column(column, column_idx):
-    x=1
+def update_1_column(column_values, column_idx):
+    # get all the possible permutations
+    unknown_column = [state.Unknown for x in range(ROWS)]
+    perms = rec_get_perms(unknown_column, column_values)  #  meanwhile_content starts "empty"
 
+    # get valid permutations according to the current content of the matrix
+    column_content = [line[column_idx] for line in Matrix][:]
+    con_filter = get_filter(column_content)
+    valid_perms = list(filter(con_filter, perms))
+
+    #find the 'agreed' values and update the matrix
+    intersection = get_intersection(valid_perms)
+    enter_column_content(intersection, column_idx)
+
+    # return whether there was an improvement
+    has_improvement = False
+    if has_diff(column_content, intersection):
+        has_improvement = True
+    return has_improvement
+
+
+def enter_column_content(intersection, column_idx):
+    for i in range(len(intersection)):
+        Matrix[i][column_idx] = intersection[i]
 
 def rec_get_perms(meanwhile_content, remaining_row):
     if remaining_row != [] and (not state.Unknown in meanwhile_content):  # not a possible permutation, not all values in the line
@@ -156,7 +181,7 @@ def print_nonogram():
             if var is state.Unknown:
                 print('-', end=" ")
             elif var is state.White:
-                print('~', end=" ")
+                print('·', end=" ")
             elif var is state.Black:
                 print('%', end=" ")
         print("")
@@ -184,8 +209,15 @@ Matrix[4][0] = state.White
 Matrix[5][0] = state.White
 
 
-Matrix[0][3] = state.White
-Matrix[0][4] = state.White
-Matrix[2][4] = state.Black
-Matrix[2][5] = state.Black
+Matrix[1][1] = state.Black
+Matrix[2][1] = state.Black
+Matrix[3][1] = state.Black
+Matrix[4][1] = state.Black
+
+Matrix[1][3] = state.Black
+Matrix[2][3] = state.Black
+Matrix[3][3] = state.Black
+Matrix[4][3] = state.Black
+
+
 """
