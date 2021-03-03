@@ -1,4 +1,4 @@
-
+import time
 
 from enum import Enum
 class state(Enum):
@@ -26,8 +26,12 @@ def main():
 
     has_improvement = True
 
+    begin = time.time()
+
     while has_improvement:
         has_improvement = solve_1_iteration()
+
+    end = time.time()
 
     #check if the nonogram was finished:
     if (nonogram_was_solved()):
@@ -37,6 +41,7 @@ def main():
         print("not succeeded finishing nonogram")
         print_nonogram()
     print("enters to rec: " + str(REC_COUNTER[0]))
+    print("time took is: " + str(round(end - begin, 3)))
      
     
 def solve_1_iteration():
@@ -61,14 +66,11 @@ def solve_1_iteration():
     return has_improvement
 
 def update_1_row(row_values, row_idx):
-    # get all the possible permutations
-    unknown_row = [state.Unknown for x in range(COLUMNS)]
-    perms = rec_get_perms(unknown_row, row_values)  #  meanwhile_content starts "empty"
-    
     # get valid permutations according to the current content of the matrix
     row_content = Matrix[row_idx][:]  # [:] to have a shallow copy
     con_filter = get_filter(row_content)  # contradiction filter - to delete all those who contradict the currently known values (row_content)
-    valid_perms = list(filter(con_filter, perms))
+    unknown_row = [state.Unknown for x in range(COLUMNS)]
+    valid_perms = rec_get_perms(unknown_row, row_values, con_filter)  #  meanwhile_content starts "empty" - Unknown
     
     #find the 'agreed' values and update the matrix
     intersection = get_intersection(valid_perms)
@@ -82,14 +84,11 @@ def update_1_row(row_values, row_idx):
 
 
 def update_1_column(column_values, column_idx):
-    # get all the possible permutations
-    unknown_column = [state.Unknown for x in range(ROWS)]
-    perms = rec_get_perms(unknown_column, column_values)  #  meanwhile_content starts "empty"
-
     # get valid permutations according to the current content of the matrix
     column_content = [line[column_idx] for line in Matrix][:]
     con_filter = get_filter(column_content)
-    valid_perms = list(filter(con_filter, perms))
+    unknown_column = [state.Unknown for x in range(ROWS)]
+    valid_perms = rec_get_perms(unknown_column, column_values, con_filter)  #  meanwhile_content starts "empty"
 
     #find the 'agreed' values and update the matrix
     intersection = get_intersection(valid_perms)
@@ -102,7 +101,7 @@ def update_1_column(column_values, column_idx):
     return has_improvement
 
 
-def rec_get_perms(meanwhile_content, remaining_row):
+def rec_get_perms(meanwhile_content, remaining_row, con_filter):
     REC_COUNTER[0] = REC_COUNTER[0] + 1  # to inspect the improvemet - how many times we enter this function, since this is the most time consuming function.
     
     if remaining_row != [] and (not state.Unknown in meanwhile_content):  # not a possible permutation, not all values in the line
@@ -116,13 +115,13 @@ def rec_get_perms(meanwhile_content, remaining_row):
         curr_to_add = remaining_row[0]
         
         first_beginning_index = find_first_unknown(meanwhile_content)
-        #last_beginning_index = len(meanwhile_content) - curr_to_add + 1
-        min_place_remaining_row = max(sum(map(lambda x: x+1, remaining_row[1:])) - 1, 0)  # add 1 to each value for the space between each two. then sub 1 to the last one without space
-        last_beginning_index = len(meanwhile_content) - curr_to_add + 1 - min_place_remaining_row
+        min_place_for_remaining_row = max(sum(map(lambda x: x+1, remaining_row[1:])) - 1, 0)  # add 1 to each value for the space between each two. then sub 1 to the last one without space
+        last_beginning_index = len(meanwhile_content) - curr_to_add + 1 - min_place_for_remaining_row
         
-        for i in range(first_beginning_index, last_beginning_index):  # TODO: check if an 'if option is possible' should be added
+        for i in range(first_beginning_index, last_beginning_index):
             new_content = fill_curr_value(meanwhile_content, i, curr_to_add)
-            perms += rec_get_perms(new_content, remaining_row[1:])
+            if con_filter(new_content):  # the new content doesn't contradict the already-existant content
+                perms += rec_get_perms(new_content, remaining_row[1:], con_filter)
         return perms
 
 
@@ -259,6 +258,78 @@ values_columns_arr = [[], [], [], [], [],
                    [], [], [], [], [],
                    [], [], [], [], [],
                    [], [], [], [], []]
+
+
+"""
+
+
+"""
+#these functions are with the contradiction-checking outside of the rec_get_perms
+
+def update_1_row(row_values, row_idx):
+    # get all the possible permutations
+    unknown_row = [state.Unknown for x in range(COLUMNS)]
+    perms = rec_get_perms(unknown_row, row_values)  #  meanwhile_content starts "empty"
+    
+    # get valid permutations according to the current content of the matrix
+    row_content = Matrix[row_idx][:]  # [:] to have a shallow copy
+    con_filter = get_filter(row_content)  # contradiction filter - to delete all those who contradict the currently known values (row_content)
+    valid_perms = list(filter(con_filter, perms))
+
+    #find the 'agreed' values and update the matrix
+    intersection = get_intersection(valid_perms)
+    Matrix[row_idx] = intersection
+    
+    # return whether there was an improvement
+    has_improvement = False
+    if has_diff(row_content, intersection):
+        has_improvement = True
+    return has_improvement
+
+
+def update_1_column(column_values, column_idx):
+    # get all the possible permutations
+    unknown_column = [state.Unknown for x in range(ROWS)]
+    perms = rec_get_perms(unknown_column, column_values)  #  meanwhile_content starts "empty"
+
+    # get valid permutations according to the current content of the matrix
+    column_content = [line[column_idx] for line in Matrix][:]
+    con_filter = get_filter(column_content)
+    valid_perms = list(filter(con_filter, perms))
+
+    #find the 'agreed' values and update the matrix
+    intersection = get_intersection(valid_perms)
+    enter_column_content(intersection, column_idx)
+
+    # return whether there was an improvement
+    has_improvement = False
+    if has_diff(column_content, intersection):
+        has_improvement = True
+    return has_improvement
+
+
+def rec_get_perms(meanwhile_content, remaining_row):
+    REC_COUNTER[0] = REC_COUNTER[0] + 1  # to inspect the improvemet - how many times we enter this function, since this is the most time consuming function.
+    
+    if remaining_row != [] and (not state.Unknown in meanwhile_content):  # not a possible permutation, not all values in the line
+        return []
+    elif remaining_row == [] and (not state.Unknown in meanwhile_content):  # all values in the line and finished - good
+        return [meanwhile_content]
+    elif remaining_row == [] and state.Unknown in meanwhile_content:  # all values in the line but yet there are unknown panels
+        return [convert_unknown_to_white(meanwhile_content)]
+    else:
+        perms = []
+        curr_to_add = remaining_row[0]
+        
+        first_beginning_index = find_first_unknown(meanwhile_content)
+        #last_beginning_index = len(meanwhile_content) - curr_to_add + 1
+        min_place_remaining_row = max(sum(map(lambda x: x+1, remaining_row[1:])) - 1, 0)  # add 1 to each value for the space between each two. then sub 1 to the last one without space
+        last_beginning_index = len(meanwhile_content) - curr_to_add + 1 - min_place_remaining_row
+        
+        for i in range(first_beginning_index, last_beginning_index):
+            new_content = fill_curr_value(meanwhile_content, i, curr_to_add)
+            perms += rec_get_perms(new_content, remaining_row[1:])
+        return perms
 
 
 """
