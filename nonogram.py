@@ -12,12 +12,13 @@ class state(Enum):
 ROWS = 15
 COLUMNS = 15
 Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
-
+REC_COUNTER = [0]
 
 #array that describes the rows of the matrix, up to down
 values_rows_arr = [[2,2,2,1], [2,2,1,1,2,1], [4,1,1,2,1], [5,5], [2,5],[7], [1,1,5], [11], [12], [13],[8,5], [1,3,5], [5,5], [3,6], [6]]
 #array that describes the columns of the matrix, left to right
 values_columns_arr = [[2], [3,3], [2,2,2], [4,6], [5,7],[2,7], [3,1,4], [7], [2,4], [2,6,2],[12], [15], [4,10], [1,9], [4,8]]
+
 
 
 
@@ -35,7 +36,7 @@ def main():
     else:
         print("not succeeded finishing nonogram")
         print_nonogram()
-   
+    print("enters to rec: " + str(REC_COUNTER[0]))
      
     
 def solve_1_iteration():
@@ -101,11 +102,9 @@ def update_1_column(column_values, column_idx):
     return has_improvement
 
 
-def enter_column_content(intersection, column_idx):
-    for i in range(len(intersection)):
-        Matrix[i][column_idx] = intersection[i]
-
 def rec_get_perms(meanwhile_content, remaining_row):
+    REC_COUNTER[0] = REC_COUNTER[0] + 1  # to inspect the improvemet - how many times we enter this function, since this is the most time consuming function.
+    
     if remaining_row != [] and (not state.Unknown in meanwhile_content):  # not a possible permutation, not all values in the line
         return []
     elif remaining_row == [] and (not state.Unknown in meanwhile_content):  # all values in the line and finished - good
@@ -115,8 +114,13 @@ def rec_get_perms(meanwhile_content, remaining_row):
     else:
         perms = []
         curr_to_add = remaining_row[0]
-        first_index = find_first_unknown(meanwhile_content)
-        for i in range(first_index, len(meanwhile_content)-curr_to_add+1):  # TODO: check if an 'if option is possible' should be added
+        
+        first_beginning_index = find_first_unknown(meanwhile_content)
+        #last_beginning_index = len(meanwhile_content) - curr_to_add + 1
+        min_place_remaining_row = max(sum(map(lambda x: x+1, remaining_row[1:])) - 1, 0)  # add 1 to each value for the space between each two. then sub 1 to the last one without space
+        last_beginning_index = len(meanwhile_content) - curr_to_add + 1 - min_place_remaining_row
+        
+        for i in range(first_beginning_index, last_beginning_index):  # TODO: check if an 'if option is possible' should be added
             new_content = fill_curr_value(meanwhile_content, i, curr_to_add)
             perms += rec_get_perms(new_content, remaining_row[1:])
         return perms
@@ -132,6 +136,11 @@ def fill_curr_value(prev_content, first_index, curr_to_add):
     if first_index + curr_to_add < len(prev_content):  # there are panels after this sequence- the next should be white
         new_content[first_index + curr_to_add] = state.White
     return new_content
+
+
+def enter_column_content(intersection, column_idx):
+    for i in range(len(intersection)):
+        Matrix[i][column_idx] = intersection[i]
 
 
 def get_filter(line_content):
@@ -220,7 +229,6 @@ values_columns_arr = [[2], [3,3], [2,2,2], [4,6], [5,7],[2,7], [3,1,4], [7], [2,
 
 
 
-
 ROWS = 80
 COLUMNS = 80
 Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
@@ -234,12 +242,16 @@ values_rows_arr = [[2], [2,1,1], [1,2,3], [1,1,2,2], [1,4,1,2,1],
                    [2,2,3,4,6,7,1,1], [4,5,6,2,10,1,2,2], [2,2,7,6,1,7,1,2,2,3], [4,6,6,16,2,1,2,1], [2,2,1,5,9,3,2,3,2,3],
                    [3,3,9,4,4,3,2,3,1], [5,2,10,1,1,3,4,2,4,1], [3,3,5,3,4,1,1,3,4,3,5,3,1], [2,1,9,2,1,1,1,3,12,2,2], [1,2,1,7,2,3,1,3,9,2,1],
                    [2,1,3,1,3,4,1,3,4,1,2,2], [3,6,2,3,3,1,2,4,2,4,3], [3,2,3,9,2,4,8], [3,2,3,5,3,2,1,1,1,1,2], [3,2,10,2,1,2,1,1,1,1,1,2],
-                   [], [], [], [], [],
-                   [], [], [], [], [],
-                   [], [], [], [], [],
-                   [], [], [], [], [],
-                   [], [], [], [], [],
-                   [], [], [], [], []]
+                   [1,2,12,2,2,2,1,2,2,2], [1,10,3,3,2,2,1,2,4,2], [1,1,6,4,3,1,1,2,1,6], [2,2,1,1,9,5,2,2,2,2,3], [3,1,1,2,2,8,4,3,5,1],
+                   [3,5,3,8,5,6,7,2,1], [1,3,12,7,10,5,8,2,1], [4,5,3,1,6,2,7,3,7,1,2], [2,8,3,1,7,2,1,6,3,8,1,4,1], [5,2,7,1,6,2,1,1,3,3,3,5,1,3,1],
+                   [4,1,1,3,2,6,2,1,3,5,5,1,3,1], [1,3,1,3,3,2,6,3,2,5,5,1,2,2], [6,11,1,7,3,2,4,6,1,7], [4,3,1,2,1,6,2,3,3,6,1,6], [2,2,4,2,1,1,5,2,2,3,6,2,7],
+                   [2,2,2,2,2,1,5,3,1,2,9,2,4,1], [2,3,1,7,1,5,3,1,1,2,9,2,9], [3,5,3,4,2,5,3,1,1,2,2,5,3,8], [4,5,3,2,5,4,2,2,3,2,2,2,3,9], [8,4,1,6,5,4,3,1,1,2,3,9],
+                   [2,9,2,2,3,13,1,1,2,2,1,2,10], [3,2,1,5,5,14,2,4,2,1,2,9], [5,2,1,1,3,2,13,3,1,1,4,1,1,3,10], [8,10,2,12,8,2,1,3,10], [9,3,6,2,11,9,3,1,2,8],
+                   [21,9,4,9,3,2,1,2,9], [16,6,10,3,10,9,2,1,2], [25,10,3,2,3,4,2,6,2,2,3,1], [14,14,2,3,4,2,4,3,7], [8,9,5,9,2,3,4,7],
+                   [1,8,1,6,5,2,8], [1,1,4,1,1,6,2,1,3,2,4], [1,2,1,3,1,1,1,3,2,1,4,1,4], [2,1,2,1,3,1,1,1,3,2,1,6,4], [3,7,1,5,1,3,2,1,4,2,2,2,2,4],
+                   [4,6,3,3,1,3,2,1,1,2,5,2,2,4], [1,2,4,2,1,4,3,1,1,2,3,4,4], [1,1,4,1,4,3,1,1,1,3,2,5], [1,1,1,1,4,1,1,1,4,2,1,2,5,1,5], [1,1,3,2,3,1,2,2,4,2,1,1,4,2,4],
+                   [3,2,1,4,2,4,1,3,2,2,1,2,4,1,1,3,1], [2,1,1,3,1,4,4,1,2,2,2,4,2,1,3,1,1], [3,3,1,6,2,10,4,1,4,2,1,5,2,2], [8,3,2,2,4,2,1,4,7,2,1,4,3,2], [2,1,1,1,3,8,1,9,11,3],
+                   [1,1,2,1,2,1,4,1,2,1,1,6,2,6,2,9,3], [3,6,3,2,1,3,3,3,4,2,3,17,1], [3,9,2,4,2,7,6,24], [2,12,16,31], [6,12,21,20]]
 #array that describes the columns of the matrix, left to right
 values_columns_arr = [[], [], [], [], [],
                    [], [], [], [], [],
