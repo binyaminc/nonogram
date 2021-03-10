@@ -42,20 +42,40 @@ def main():
     has_improvement = True
 
     begin = time.time()
-    
-    has_improvement = first_basic_iteration()  # without recursion
+    while not nonogram_was_solved():
+        ic = 0
+        while (has_improvement):
+            has_improvement = first_basic_iteration()  # without recursion
+            print("after ", ic, "'th iteration:")
+            print_nonogram()
+            ic+=1
 
-    print("after basic iteration (without recursion): ")
-    print_nonogram()
+        has_improvement = False
+        for i in range(ROWS):
+            ROWS_HAS_CHANGE[i] = True  # is there a difference from the previous round
+            COLUMNS_HAS_CHANGE[i] = True  # --"--
 
-    while (has_improvement or (True in ROWS_HAS_CHANGE) or (True in COLUMNS_HAS_CHANGE)):
-        has_improvement = solve_1_iteration()
-        
-        #print("has_improvement: ", has_improvement)
-        #print("True in ROWS_CAN_IMPROVE: ", (True in ROWS_CAN_IMPROVE))
-        #print("True in COLUMNS_CAN_IMPROVE: ", (True in COLUMNS_CAN_IMPROVE))
+        if nonogram_was_solved():
+            break
+
+        #print("after basic iteration (without recursion): ")
         #print_nonogram()
-        #print("")
+        ic = 0
+        while not has_improvement: #  (has_improvement or (True in ROWS_HAS_CHANGE) or (True in COLUMNS_HAS_CHANGE)):
+            rec_1_begin = time.time()
+            has_improvement = solve_1_iteration()
+            rec_1_end = time.time()
+
+            print("after ", ic, "'th iteration:")
+            print("iteration ",ic , " took " + str(round(rec_1_end - rec_1_begin, 3)))
+            print("has_improvement: ", has_improvement)
+            #print("True in ROWS_HAS_CHANGE: ", (True in ROWS_HAS_CHANGE))
+            #print("True in COLUMNS_HAS_CHANGE: ", (True in COLUMNS_HAS_CHANGE))
+            print("ROWS_HAS_CHANGE: ", ROWS_HAS_CHANGE)
+            print("COLUMNS_HAS_CHANGE: ", COLUMNS_HAS_CHANGE)
+            print_nonogram()
+            ic+=1
+
         
 
     end = time.time()
@@ -70,7 +90,8 @@ def main():
         print_nonogram()
     
     print("enters to rec: " + str(REC_COUNTER[0]))
-    print("time took is: " + str(round(end - begin, 3)))
+    print("total time took is: " + str(round(end - begin, 3)))
+    
  
 
 def first_basic_iteration():
@@ -79,32 +100,163 @@ def first_basic_iteration():
 
     # update rows
     for i in range(ROWS):
-        row_has_improvement, intersection = fast_update(values_rows_arr[i])
-        Matrix[i] = intersection
+        #print("row ", i)
+        row_content = Matrix[i][:]
+        updated = get_line_update(values_rows_arr[i], row_content)
+        Matrix[i] = updated
+    
         ROWS_HAS_CHANGE[i] = False
-        
-        if row_has_improvement:
-            has_improvement = True
-
+        for idx in range(len(row_content)):
+            if (row_content[idx] == state.Unknown and updated[idx] == state.Black) or (row_content[idx] == state.Unknown and updated[idx] == state.White):
+                COLUMNS_HAS_CHANGE[idx] = True
+                has_improvement = True
+    #print("after rows: ")
+    #print_nonogram()
+ 
     # update columns
     for i in range(COLUMNS): 
-        columns_has_improvement, intersection = fast_update(values_columns_arr[i])
+        #print("column ", i)
         column_content = [line[i] for line in Matrix][:]
-        merged = merge_2_lines(column_content, intersection)
-        enter_column_content(merged, i)
-        
+        updated = get_line_update(values_columns_arr[i], column_content)
+        enter_column_content(updated, i)
+        #print_nonogram()
         COLUMNS_HAS_CHANGE[i] = False
-        for i in range(len(column_content)):
-            if (column_content[i] == state.Unknown and intersection[i] == state.Black) or (column_content[i] == state.Unknown and intersection[i] == state.White):
-                ROWS_HAS_CHANGE[i] = True
-
-        if columns_has_improvement:
-            has_improvement = True
+        for idx in range(len(column_content)):
+            if (column_content[idx] == state.Unknown and updated[idx] == state.Black) or (column_content[idx] == state.Unknown and updated[idx] == state.White):
+                ROWS_HAS_CHANGE[idx] = True
+                has_improvement = True
+    #print("after columns: ")
+    #print_nonogram()
 
     return has_improvement
 
+def get_line_update(values, content):
 
+    left = to_left(values, content)
+    rev_val = list(reversed(values))
+    rev_con = list(reversed(content)) 
+    rev_right = to_left(rev_val, rev_con)
+    right = list(reversed(rev_right))
+
+    val_begin_end_l_r = [[0,0,0,0] for i in range(len(values))]  # [0] = begin left
+                                                                      # [1] = end left
+                                                                      # [2] = begin right
+                                                                      # [3] = end right
     
+    # loop over left to find begin-end for each val
+    begin_end_l = get_begin_end(values, left)
+    
+    # loop over right to find begin-end for each val
+    begin_end_r = get_begin_end(values, right)
+
+    # enter to val_begin_end_l_r
+    for i in range(len(values)):
+        val_begin_end_l_r[i][0] = begin_end_l[i][0]
+        val_begin_end_l_r[i][1] = begin_end_l[i][1]
+        val_begin_end_l_r[i][2] = begin_end_r[i][0]
+        val_begin_end_l_r[i][3] = begin_end_r[i][1]
+    
+    # find must-be blacks
+    updated = content[:]  # [state.Unknown for i in range(len(content))]
+    for val in val_begin_end_l_r:
+        if val[2] <= val[1]:  # begin right <= end left
+            for i in range(val[2], val[1] + 1): 
+                updated[i] = state.Black
+
+    # find panels that no one can reach, and mark as white
+    can_reach = [False for i in range(len(content))]  
+    for val in val_begin_end_l_r:
+        for i in range(val[0], val[3] + 1): 
+                can_reach[i] = True
+    for i in range(len(content)):
+        if not can_reach[i]:
+            updated[i] = state.White
+    
+    return updated
+
+def get_begin_end(values, content):
+    beg_end = [[0,0] for i in range(len(values))]
+    con_idx = 0
+    val_idx = 0
+    all_in = False
+    while(not all_in):
+        if content[con_idx] == state.White:
+            con_idx += 1
+        else:
+            beg_end[val_idx][0] = con_idx  # begin
+            val_len = values[val_idx]
+            beg_end[val_idx][1] = con_idx + val_len - 1 # end
+            
+            con_idx += val_len
+            val_idx += 1
+            if val_idx == len(values):
+                all_in = True
+    return beg_end
+  
+def to_left(values, content):
+    
+    # stick values to the left
+    curr_idx = 0
+    left = [state.Unknown for i in range(len(content))]
+    for i in range(len(values)):
+        left = fill_curr_value(left, curr_idx, values[i])
+        curr_idx += values[i] + 1
+    left = convert_unknown_to_white(left)
+    
+    not_cont = get_filter(content)
+    not_con = not_cont(left)
+
+    while(not not_con):  # left contradicts the content
+        con_idx = find_first_con(left, content)
+        if left[con_idx] == state.Black:  # and content[con_idx] == state.White
+            beg_mov_idx = con_idx
+            while(beg_mov_idx != 0 and left[beg_mov_idx - 1] == state.Black):
+                beg_mov_idx = beg_mov_idx - 1
+
+            move_size = 1 + con_idx - beg_mov_idx
+            left = move(left, beg_mov_idx, move_size)
+
+        elif left[con_idx] == state.White:
+            beg_mov_idx = con_idx
+            while(left[beg_mov_idx] == state.White):
+                beg_mov_idx = beg_mov_idx - 1
+            end_black_val = beg_mov_idx
+            while(beg_mov_idx != 0 and left[beg_mov_idx - 1] == state.Black):
+                beg_mov_idx = beg_mov_idx - 1
+
+            move_size = con_idx - end_black_val
+            left = move(left, beg_mov_idx, move_size)
+        
+        not_con = not_cont(left)
+    return left
+
+def move(line, beg_idx, move_size):
+    # find end value idx
+    end_idx = beg_idx
+    while(line[end_idx + 1] == state.Black):  # to add 'end_idx != len(line)-1 and ' ?
+        end_idx += 1
+
+    # make sure there is space for the move
+    if state.Black in line[end_idx + 1:end_idx+1 + move_size + 1]:  #  the second +1 for the white after:
+        #move the rest
+        next_beg_idx = find_first_state(line, state.Black, end_idx+1)  #  TODO: should we check backwards?
+        next_move_size = end_idx+1 + move_size + 1 - next_beg_idx
+        line = move(line, next_beg_idx, next_move_size)
+
+   # after we cleared space, we move
+    for i in range(beg_idx, end_idx + 1):
+        line[i] = state.White
+    for i in range(beg_idx+move_size, end_idx+move_size+1):
+        line[i] = state.Black
+    return line
+    
+
+def find_first_con(line1, line2):
+    for i in range(len(line1)):
+        if line1[i] == state.Black and line2[i] == state.White or line1[i] == state.White and line2[i] == state.Black:
+            return i
+    return -1
+
 def solve_1_iteration():
     has_improvement = False
 
@@ -170,7 +322,6 @@ def update_1_row(row_values, row_idx):
         has_improvement = True
     return has_improvement
 
-
 def update_1_column(column_values, column_idx):
     
     # get valid permutations according to the current content of the matrix
@@ -209,7 +360,7 @@ def rec_get_perms(meanwhile_content, remaining_row, con_filter):
         perms = []
         curr_to_add = remaining_row[0]
         
-        first_beginning_index = find_first_unknown(meanwhile_content)
+        first_beginning_index = find_first_state(meanwhile_content, state.Unknown)
         min_place_for_remaining_row = max(sum(map(lambda x: x+1, remaining_row[1:])) - 1, 0)  # add 1 to each value for the space between each two. then sub 1 to the last one without space
         last_beginning_index = len(meanwhile_content) - curr_to_add + 1 - min_place_for_remaining_row # TODO: should subtract 1 because indexing starts from 0?
         
@@ -330,9 +481,9 @@ def get_filter(line_content):
         return True
     return not_con
 
-def find_first_unknown(line):
-    for i in range(0, len(line)):
-        if line[i] == state.Unknown:
+def find_first_state(line, stat, from_idx = 0):
+    for i in range(from_idx, len(line)):
+        if line[i] == stat:
             return i
     return -1  # Unknown not found
 
@@ -375,12 +526,12 @@ def print_nonogram():
         i = i + 1
         for var in line:
             if var is state.Unknown:
-                print('~~', end="")  # '-' another option
+                print(' -', end="")  # '-' another option
             elif var is state.White:
                 print('  ', end="")  # '·' another option
             elif var is state.Black:
                 print('██', end="")  # %
-        print("")
+        print(" ", values_rows_arr[i-1])
 
 def save_res_to_file(RES_PATH):
     res = ""
@@ -464,6 +615,27 @@ values_columns_arr = [[1], [2], [1,3], [2,3], [2,2,3],
                    [21], [22], [24], [7,3,3,4,4], [4,2,1,2,3],
                    [1,3,7], [5,6], [7,4], [2,2], [1]]
 
+# ship
+
+ROWS = 32
+COLUMNS = 32
+Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
+
+values_rows_arr = [[4],[3,2],[1],[3,5],[1,8],
+                   [6,1,1],[1,5,5,1],[1,1,5,2],[2,5,7,2],[2,7,7,2],
+                   [2,7,1,3],[3,1,1,9,3],[3,1,16,4],[3,2,16,4],[2,3,17,5],
+                   [2,2,17,2],[3,1,1,3,1,7],[3,1,1,6],[11,1,7],[25],
+                   [24],[21,1],[19,2],[9],[30],
+                   [24],[25],[14],[16],
+                   [1],[1],[1]]
+
+values_columns_arr = [[1,1,3],[3,1],[2,2,2],[2,2,3],[3,2,3],
+                   [3,3,2,4],[3,3,3,4],[2,3,3,4],[2,1,4,4],[1,2,5,3],
+                   [1,2,4,5,3],[2,3,4,5,3],[1,2,3,4,5,3,1],[20,3,1],[1,2,3,4,5,3,1],
+                   [2,3,4,4,5],[1,2,5,4,5],[1,6,4,5],[2,1,2,6,4,5],[1,2,4,5,4,5],
+                   [2,2,4,5,4,5],[23,5],[2,4,5,4,5],[2,4,5,4,5],[1,2,5,5,5],
+                   [1,12,5],[3,7,5],[16,1,3],[14,1,2],[5,5,1,1,1],
+                   [3,3,2,1],[1,1,1]]
 
 
 # this example creates a huge deer

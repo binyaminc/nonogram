@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5a9945ca-b625-4267-a39e-acbd5caeb8b6</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>nonogram.py</StartupFile>
+    <StartupFile>checks.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,6 +22,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="checks.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="checks2.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="nonogram.py" />
