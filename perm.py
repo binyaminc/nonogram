@@ -13,6 +13,7 @@ def iteration():
     get_potential = tools.get_potential_filter("rows")
     best_has_change_potential_rows = list(filter(get_potential, best_has_change_rows))  # the rows that will make result
 
+    print("rows that I work on:", best_has_change_potential_rows[:ITER_AMOUNT])
     for i in best_has_change_potential_rows[:ITER_AMOUNT]:  
         #print("calc " + str(i) + "'th row: " + str(values_rows_arr[i]))
         tmp_has_imp = update_1_row(data.values_rows_arr[i], i)
@@ -32,6 +33,7 @@ def iteration():
     get_potential = tools.get_potential_filter("columns")
     best_has_change_potential_columns = list(filter(get_potential, best_has_change_columns))  # the columns that will make result
     
+    print("columns that I work on:", best_has_change_potential_columns[:ITER_AMOUNT])
     for i in best_has_change_potential_columns[:ITER_AMOUNT]:
         #print("calc " + str(i) + "'th column: " + str(data.values_columns_arr[i]))
         tmp_has_imp = update_1_column(data.values_columns_arr[i], i)
@@ -112,7 +114,20 @@ def get_perms(meanwhile_content, remaining_row, con_filter):
         
         for i in range(first_beginning_index, last_beginning_index):
             new_content = tools.fill_curr_value(meanwhile_content, i, curr_to_add)
+            if len(remaining_row) == 1:  # another change
+                new_content = tools.convert_unknown_to_white(new_content)
             if con_filter(new_content):  # the new content doesn't contradict the already-existant content
-                perms += list(filter(con_filter, get_perms(new_content, remaining_row[1:], con_filter)))
-        return perms
+                
+                deeper_perms = get_perms(new_content, remaining_row[1:], con_filter)  # --------------changes from here
+                if len(deeper_perms) == 0:
+                    pass
+                elif len(deeper_perms) == 1 and con_filter(deeper_perms[0]):
+                    perms += deeper_perms
+                elif con_filter(deeper_perms):
+                    perms += [deeper_perms]
+
+        return tools.get_intersection(perms)  # --------------until here
+        
+                #perms += list(filter(con_filter, get_perms(new_content, remaining_row[1:], con_filter)))
+        #return perms
 

@@ -12,7 +12,7 @@ def iteration():
         updated = line_update(data.values_rows_arr[i], row_content)
         data.set_row(updated, i)
     
-        data.ROWS_HAS_CHANGE[i] = False
+        # data.ROWS_HAS_CHANGE[i] = False
         for idx in range(len(row_content)):
             if (row_content[idx] == data.state.Unknown and updated[idx] == data.state.Black) or (row_content[idx] == data.state.Unknown and updated[idx] == data.state.White):
                 data.COLUMNS_HAS_CHANGE[idx] = True
@@ -27,7 +27,8 @@ def iteration():
         updated = line_update(data.values_columns_arr[i], column_content)
         data.set_column(updated, i)
         #print_nonogram()
-        data.COLUMNS_HAS_CHANGE[i] = False
+        
+        #data.COLUMNS_HAS_CHANGE[i] = False
         for idx in range(len(column_content)):
             if (column_content[idx] == data.state.Unknown and updated[idx] == data.state.Black) or (column_content[idx] == data.state.Unknown and updated[idx] == data.state.White):
                 data.ROWS_HAS_CHANGE[idx] = True

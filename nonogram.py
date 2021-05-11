@@ -6,6 +6,17 @@ import data
 
 
 def main():
+    
+    print("Welcome to my nonogram solver program!")
+    print("Use existant nonogram or type in new nonogram?\nexsistant: 'y', new: 'n'")
+    choise = input()
+    while choise not in ['y','n']:
+        print("enter 'y' or 'n'")
+        choise = input()
+
+    if choise == 'n':
+        data.get_user_data()
+        
 
     has_improvement = True
 
@@ -19,12 +30,10 @@ def main():
             #print("after ", ic, "'th iteration:")
             #data.print_nonogram()
             ic+=1
-            a = data.Matrix[:]
 
-        has_improvement = False
-        for i in range(data.ROWS):
-            data.ROWS_HAS_CHANGE[i] = True  # is there a difference from the previous round
-            data.COLUMNS_HAS_CHANGE[i] = True  # --"--
+        #for i in range(data.ROWS):
+        #    data.ROWS_HAS_CHANGE[i] = True  # is there a difference from the previous round
+        #    data.COLUMNS_HAS_CHANGE[i] = True  # --"--
 
         if tools.nonogram_was_solved():
             break
@@ -33,19 +42,19 @@ def main():
         #print_nonogram()
         ic = 0
         while not has_improvement: #  (has_improvement or (True in ROWS_HAS_CHANGE) or (True in COLUMNS_HAS_CHANGE)):
+            print("working on " + str(ic) + "'th iteration...")
+            
             rec_1_begin = time.time()
             has_improvement = perm.iteration()
             rec_1_end = time.time()
-            """
-            print("after ", ic, "'th iteration:")
-            print("iteration ",ic , " took " + str(round(rec_1_end - rec_1_begin, 3)))
-            print("has_improvement: ", has_improvement)
-            #print("True in ROWS_HAS_CHANGE: ", (True in ROWS_HAS_CHANGE))
-            #print("True in COLUMNS_HAS_CHANGE: ", (True in COLUMNS_HAS_CHANGE))
-            print("ROWS_HAS_CHANGE: ", data.ROWS_HAS_CHANGE)
-            print("COLUMNS_HAS_CHANGE: ", data.COLUMNS_HAS_CHANGE)
+            
+            print("after " + str(ic) + "'th iteration:")
+            print("iteration " + str(ic) + " took " + str(round(rec_1_end - rec_1_begin, 3)))
+            print("has_improvement:", has_improvement)
+            print("ROWS_HAS_CHANGE:", data.ROWS_HAS_CHANGE)
+            print("COLUMNS_HAS_CHANGE:", data.COLUMNS_HAS_CHANGE)
             data.print_nonogram()
-            """
+            
             ic+=1
 
     end = time.time()

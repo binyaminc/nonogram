@@ -43,19 +43,28 @@ def move(line, beg_idx, move_size):
     while(line[end_idx + 1] == data.state.Black):  # to add 'end_idx != len(line)-1 and ' ?
         end_idx += 1
 
+    # check if move possible
+    if end_idx + 1 + move_size > len(line):
+        return -1
+
+    new_line = line[:]
+    
     # make sure there is space for the move
     if data.state.Black in line[end_idx + 1:end_idx+1 + move_size + 1]:  #  the second +1 for the white after:
         #move the rest
         next_beg_idx = find_first_state(line, data.state.Black, end_idx+1)  #  TODO: should we check backwards?
         next_move_size = end_idx+1 + move_size + 1 - next_beg_idx
-        line = move(line, next_beg_idx, next_move_size)
+        new_line = move(line, next_beg_idx, next_move_size)
+        # if next moves impossible- this one too
+        if new_line == -1:
+            return -1
 
-   # after we cleared space, we move
+    # after we cleared space, we move
     for i in range(beg_idx, end_idx + 1):
-        line[i] = data.state.White
+        new_line[i] = data.state.White
     for i in range(beg_idx+move_size, end_idx+move_size+1):
-        line[i] = data.state.Black
-    return line
+        new_line[i] = data.state.Black
+    return new_line
     
 def find_first_con(line1, line2):
     for i in range(len(line1)):
@@ -114,8 +123,19 @@ def has_diff(line1, line2):
     return False
 
 def get_intersection(perms):
+    if perms == [] or perms[0] in data.state:
+        return perms
+
     ret = [data.state.Unknown for x in range(len(perms[0]))]
     for i in range(len(perms[0])):
+
+        col = [row[i] for row in perms]
+        if data.state.Black in col and not data.state.White in col and not data.state.Unknown in col:
+            ret[i] = data.state.Black
+        elif not data.state.Black in col and data.state.White in col and not data.state.Unknown in col:
+            ret[i] = data.state.White
+        # else stays Unknown
+        """
         curr = perms[0][i]
         same = True
         for perm in perms:
@@ -123,6 +143,7 @@ def get_intersection(perms):
                 same = False
         if same:
             ret[i] = curr
+        """
     return ret
 
 def nonogram_was_solved():
@@ -149,7 +170,7 @@ def get_potential_filter(direction):
     
         biggest_value = max(line)
         min_content_size = sum(line) + len(line) - 1
-        max_shift = data.ROWS - min_content_size 
+        max_shift = len(content) - min_content_size 
         if max_shift >= biggest_value:
             return False
         return True
@@ -162,9 +183,11 @@ def get_best_order(direction):
         to_sort = data.values_columns_arr[:]
     priority = [[i,0] for i in range(len(to_sort))]
     
+    line_size = data.COLUMNS if direction == 'rows' else data.ROWS
+
     for i in range(len(to_sort)):  # filling priorities, rules of thumb
         priority[i][1] += max(to_sort[i]) * 2  # it's good to have a big number
-        priority[i][1] -= data.COLUMNS - (sum(to_sort[i]) + len(to_sort[i]) - 1)  # if the values are very close to the line size - it's better
+        priority[i][1] -= line_size - (sum(to_sort[i]) + len(to_sort[i]) - 1)  # if the values are very close to the line size - it's better
         priority[i][1] -= len(to_sort[i]) # better computentially to have few values
         # TODO: take in account how much content of line has values different from Unknown - how much it is full?
         # TODO: prioritize lines that are in the edges

@@ -9,20 +9,21 @@ RES_PATH = r"D:\visual studio projects\nonogram\res_file.txt"
 
 # ------------put rows and columns here------------
 
-#array that describes the rows of the matrix, up to down
-values_rows_arr = [[1], [1], [1,3,1], [1,2,1,2,1], [4,1,1,1,2],
-                   [2,2,3,2], [2,2,1,2,2,4], [3,2,1,1,3,1], [3,5,1,3,1], [2,1,4,4,1,2],
-                   [4,2,5,2], [4,2,5,5], [4,3,10], [12,3,3], [14],
-                   [9], [12], [4,5,1], [7,2], [10],
-                   [11], [13], [7,4], [7,2], [7],
-                   [5,8], [18], [22], [23], [24]]
-#array that describes the columns of the matrix, left to right
-values_columns_arr = [[1], [2], [1,3], [2,3], [2,2,3],
-                   [7,3], [4,4,4], [3,2,1,4], [5,4], [3,5],
-                   [3,5], [3,5], [2,2,5], [3,2,1,5], [4,7,2,4],
-                   [10,2,5], [1,1,2,6,9], [4,1,1,4,12], [5,17], [5,2,16],
-                   [21], [22], [24], [7,3,3,4,4], [4,2,1,2,3],
-                   [1,3,7], [5,6], [7,4], [2,2], [1]]
+values_rows_arr = [[4],[3,2],[1],[3,5],[1,8],
+                   [6,1,1],[1,5,5,1],[1,1,5,2],[2,5,7,2],[2,7,7,2],
+                   [2,7,1,3],[3,1,1,9,3],[3,1,16,4],[3,2,16,4],[2,3,17,5],
+                   [2,2,17,2],[3,1,1,3,1,7],[3,1,1,6],[11,1,7],[25],
+                   [24],[21,1],[19,2],[9],[30],
+                   [24],[25],[14],[16]]
+
+values_columns_arr = [[1,1],[3,1],[2,2,2],[2,2,3],[3,2,3],
+                   [3,3,2,4],[3,3,3,4],[2,3,3,4],[2,1,4,4],[1,2,5,3],
+                   [1,2,4,5,3],[2,3,4,5,3],[1,2,3,4,5,3,1],[20,3,1],[1,2,3,4,5,3,1],
+                   [2,3,4,4,5],[1,2,5,4,5],[1,6,4,5],[2,1,2,6,4,5],[1,2,4,5,4,5],
+                   [2,2,4,5,4,5],[23,5],[2,4,5,4,5],[2,4,5,4,5],[1,2,5,5,5],
+                   [1,12,5],[3,7,5],[16,1,3],[14,1,2],[5,5,1,1,1],
+                   [3,3,2,1],[1,1,1]]
+
 
 # ------------------until here------------------
 
@@ -48,6 +49,12 @@ def set_column(new_content, column_idx):
         Matrix[i][column_idx] = new_content[i]
 
 def print_nonogram():
+    print('', end='   ')
+    for col_num in range(COLUMNS):
+        if col_num%2 == 0:
+            print(' ' + str(col_num), end="  ") if col_num<10 else print(col_num, end="  ")
+    print("")
+
     i = 0
     for line in Matrix:
         if i<10:
@@ -64,6 +71,45 @@ def print_nonogram():
                 print('██', end="")  # %
         print(" ", values_rows_arr[i-1])
 
+def get_user_data():
+    print("enter rows top to bottom, row after row \nwrite values and spaces between them, like 1 2 2 5 \nto finish- enter some non-digit characters")
+    
+    values_rows_arr.clear()
+    values_columns_arr.clear()
+
+    row = input()
+    row_parts = row.split(' ')
+    while all(d.isdigit() for d in row_parts):
+        values_rows_arr.append([int(d) for d in row_parts])
+        row = input()
+        row_parts = row.split(' ')
+
+    print("finished getting rows. result: ")
+    for r in values_rows_arr:
+        print(r)
+
+    print("enter columns left to right. finish as before")
+
+    column = input()
+    column_parts = column.split(' ')
+    while all(d.isdigit() for d in column_parts):
+        values_columns_arr.append([int(d) for d in column_parts])
+        column = input()
+        column_parts = column.split(' ')
+
+    print("finished getting columns. result: ")
+    for r in values_columns_arr:
+        print(r)
+
+    global ROWS
+    global COLUMNS
+    global Matrix
+    ROWS = len(values_rows_arr)
+    COLUMNS = len(values_columns_arr)
+    Matrix = [[state.Unknown for x in range(COLUMNS)] for y in range(ROWS)]
+
+
+        
 def save_res_to_file():
     res = ""
     for line in Matrix:
@@ -116,17 +162,16 @@ values_columns_arr = [[1], [2], [1,3], [2,3], [2,2,3],
                    [1,3,7], [5,6], [7,4], [2,2], [1]]
 
 
-# ship - 32*32
+# ship - 29*32
 
 values_rows_arr = [[4],[3,2],[1],[3,5],[1,8],
                    [6,1,1],[1,5,5,1],[1,1,5,2],[2,5,7,2],[2,7,7,2],
                    [2,7,1,3],[3,1,1,9,3],[3,1,16,4],[3,2,16,4],[2,3,17,5],
                    [2,2,17,2],[3,1,1,3,1,7],[3,1,1,6],[11,1,7],[25],
                    [24],[21,1],[19,2],[9],[30],
-                   [24],[25],[14],[16],
-                   [1],[1],[1]]
+                   [24],[25],[14],[16]]
 
-values_columns_arr = [[1,1,3],[3,1],[2,2,2],[2,2,3],[3,2,3],
+values_columns_arr = [[1,1],[3,1],[2,2,2],[2,2,3],[3,2,3],
                    [3,3,2,4],[3,3,3,4],[2,3,3,4],[2,1,4,4],[1,2,5,3],
                    [1,2,4,5,3],[2,3,4,5,3],[1,2,3,4,5,3,1],[20,3,1],[1,2,3,4,5,3,1],
                    [2,3,4,4,5],[1,2,5,4,5],[1,6,4,5],[2,1,2,6,4,5],[1,2,4,5,4,5],
@@ -171,4 +216,5 @@ values_columns_arr = [[1,1,2,1,2,2,1,1,4,4,2], [2,3,1,3,2,4,1,8,2,3,1,1,1], [2,3
                    [4,2,1,1,6,6,2,5], [5,3,4,5,1,6], [5,3,3,9,2,3], [3,3,2,1,10,1,2,3], [3,2,5,6,3,1,2,1,3],
                    [2,2,10,1,2,1,1,4], [1,10,1,8,1,2,1], [1,4,1,1,10,1,2,2], [1,1,1,2,1,14,2,2,1], [5,1,23,2,2,1],
                    [5,2,18,3,1], [2,1,1,14,1,1], [3,2,4,12,1], [1,3,5,1,9,1,1], [6,1,10,1,1]]
+
 """
