@@ -24,7 +24,6 @@ values_columns_arr = [[1,1],[3,1],[2,2,2],[2,2,3],[3,2,3],
                    [1,12,5],[3,7,5],[16,1,3],[14,1,2],[5,5,1,1,1],
                    [3,3,2,1],[1,1,1]]
 
-
 # ------------------until here------------------
 
 ROWS = len(values_rows_arr)
@@ -49,27 +48,53 @@ def set_column(new_content, column_idx):
         Matrix[i][column_idx] = new_content[i]
 
 def print_nonogram():
-    print('', end='   ')
+    max_row_width = max([len(' '.join([str(i) for i in v])) for v in values_rows_arr]) 
+    
+    # print column numbers
+    print(' '*max_row_width, end='    ')
     for col_num in range(COLUMNS):
-        if col_num%2 == 0:
-            print(' ' + str(col_num), end="  ") if col_num<10 else print(col_num, end="  ")
+        if col_num < 9:
+            print(str(col_num).rjust(2), end="")
+        elif col_num == 9:
+            print("", end="  ")
+        elif col_num%2 == 0:
+            print(str(col_num).rjust(2), end="  ")
     print("")
 
+    # print column values
+    col_as_list = [list(reversed([str(v).rjust(2, ' ') for v in col])) for col in values_columns_arr]
+    max_col_width = max([len(col) for col in col_as_list])
+    
+    to_print = ['' for i in range(max_col_width)]
+
+    for depth in range(max_col_width):
+        cur = ""
+        for col in col_as_list:
+            cur += (col[depth] if len(col) > depth else "  ")
+        to_print[depth] = cur
+
+    
+    to_print = list(reversed(to_print))
+    for i in to_print:
+        print("    " + " "*max_row_width + i)
+
+    # print Matrix content
     i = 0
     for line in Matrix:
-        if i<10:
-            print(str(i), end= "  ")
-        else:
-            print(str(i), end= " ")
+        # print row number
+        print(str(i).ljust(2), end= "")
         i = i + 1
+        # print row values
+        print(' ' + (' '.join([str(i) for i in values_rows_arr[i-1]])).rjust(max_row_width), end= " ")
+        # row content
         for var in line:
             if var is state.Unknown:
                 print(' -', end="")  # '-' another option
             elif var is state.White:
-                print('  ', end="")  # '·' another option
+                print('██', end="")  # '·' another option
             elif var is state.Black:
-                print('██', end="")  # %
-        print(" ", values_rows_arr[i-1])
+                print('  ', end="")  # %
+        print("")
 
 def get_user_data():
     print("enter rows top to bottom, row after row \nwrite values and spaces between them, like 1 2 2 5 \nto finish- enter some non-digit characters")
@@ -138,22 +163,24 @@ values_columns_arr = [[3], [3], [2], [5], [8],[6,2], [7,1], [1,2,1], [2,2,1], [6
 
 # this example creates deer - 15*15
 
-#array that describes the rows of the matrix, up to down
-values_rows_arr = [[2,2,2,1], [2,2,1,1,2,1], [4,1,1,2,1], [5,5], [2,5],[7], [1,1,5], [11], [12], [13],[8,5], [1,3,5], [5,5], [3,6], [6]]
-#array that describes the columns of the matrix, left to right
-values_columns_arr = [[2], [3,3], [2,2,2], [4,6], [5,7],[2,7], [3,1,4], [7], [2,4], [2,6,2],[12], [15], [4,10], [1,9], [4,8]]
+values_rows_arr = [[2,2,2,1], [2,2,1,1,2,1], [4,1,1,2,1], [5,5], [2,5],
+                    [7], [1,1,5], [11], [12], [13],
+                    [8,5], [1,3,5], [5,5], [3,6], [6]]
+
+values_columns_arr = [[2], [3,3], [2,2,2], [4,6], [5,7],
+                     [2,7], [3,1,4], [7], [2,4], [2,6,2],
+                     [12], [15], [4,10], [1,9], [4,8]]
 
 
 # this example creates a bigger deer - 30*30
 
-#array that describes the rows of the matrix, up to down
 values_rows_arr = [[1], [1], [1,3,1], [1,2,1,2,1], [4,1,1,1,2],
                    [2,2,3,2], [2,2,1,2,2,4], [3,2,1,1,3,1], [3,5,1,3,1], [2,1,4,4,1,2],
                    [4,2,5,2], [4,2,5,5], [4,3,10], [12,3,3], [14],
                    [9], [12], [4,5,1], [7,2], [10],
                    [11], [13], [7,4], [7,2], [7],
                    [5,8], [18], [22], [23], [24]]
-#array that describes the columns of the matrix, left to right
+
 values_columns_arr = [[1], [2], [1,3], [2,3], [2,2,3],
                    [7,3], [4,4,4], [3,2,1,4], [5,4], [3,5],
                    [3,5], [3,5], [2,2,5], [3,2,1,5], [4,7,2,4],
