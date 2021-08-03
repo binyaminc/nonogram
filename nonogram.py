@@ -3,19 +3,24 @@ import left_right
 import perm
 import tools
 import data
+import move
 
 
 def main():
     
     print("Welcome to my nonogram solver program!")
-    print("Use existant nonogram or type in new nonogram?\nexsistant: 'y', new: 'n'")
+    print("Use existant nonogram or type in new nonogram?\nexsistant: 'y', new: 'n', result from file: 'f'")
     choise = input()
-    while choise not in ['y','n']:
-        print("enter 'y' or 'n'")
+    while choise not in ['y','n','f']:
+        print("enter 'y', 'n' or 'f'")
         choise = input()
 
     if choise == 'n':
         data.get_user_data()
+    elif choise == 'f':
+        print("enter result file path: ")
+        path = input()
+        data.read_res_from_file(path)
         
 
     has_improvement = True
@@ -27,8 +32,8 @@ def main():
         ic = 0
         while (has_improvement):
             has_improvement = left_right.iteration()  # without recursion
-            #print("after ", ic, "'th iteration:")
-            #data.print_nonogram()
+            print("after ", ic, "'th iteration:")
+            data.print_nonogram()
             ic+=1
 
         #for i in range(data.ROWS):
@@ -38,14 +43,14 @@ def main():
         if tools.nonogram_was_solved():
             break
 
-        #print("after basic iteration (without recursion): ")
-        #print_nonogram()
+        print("after basic iteration (without recursion): ")
+        data.print_nonogram()
         ic = 0
         while not has_improvement: #  (has_improvement or (True in ROWS_HAS_CHANGE) or (True in COLUMNS_HAS_CHANGE)):
             print("working on " + str(ic) + "'th iteration...")
             
             rec_1_begin = time.time()
-            has_improvement = perm.iteration()
+            has_improvement = move.iteration() #perm.iteration()
             rec_1_end = time.time()
             
             print("after " + str(ic) + "'th iteration:")
@@ -68,7 +73,7 @@ def main():
         print("not succeeded finishing nonogram")
         data.print_nonogram()
     
-    print("enters to rec: " + str(perm.REC_COUNTER[0]))
+    # print("enters to rec: " + str(perm.REC_COUNTER[0]))
     print("total time took is: " + str(round(end - begin, 3)))
 
 
@@ -79,3 +84,5 @@ if __name__ == "__main__":
 
 # TODO: using pyInstaller to convert to .exe
 # The main issue to convert it to a single file
+
+

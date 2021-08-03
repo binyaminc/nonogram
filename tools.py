@@ -1,8 +1,10 @@
 import data
 
 def move_to_left(values, content):
-    
-    # stick values to the left
+    """
+    stick values to the left, not contradicting the content
+    """
+
     curr_idx = 0
     left = [data.state.Unknown for i in range(len(content))]
     for i in range(len(values)):
@@ -10,37 +12,54 @@ def move_to_left(values, content):
         curr_idx += values[i] + 1
     left = convert_unknown_to_white(left)
     
-    not_cont = get_filter(content)
-    not_con = not_cont(left)
+    return solve_contradiction_to_right(left, content) # moves piles right until there is no contradition with the content
 
-    while(not not_con):  # left contradicts the content
-        con_idx = find_first_con(left, content)
-        if left[con_idx] == data.state.Black:  # and content[con_idx] == data.state.White
+
+def solve_contradiction_to_right(line, content):
+    """
+    moves piles of line right until there is no contradition with the content
+    """
+    not_cont = get_filter(content)
+    not_con = not_cont(line)
+
+    while(not not_con):  # line contradicts the content
+        con_idx = find_first_con(line, content)
+        if line[con_idx] == data.state.Black:  # and content[con_idx] == data.state.White
             beg_mov_idx = con_idx
-            while(beg_mov_idx != 0 and left[beg_mov_idx - 1] == data.state.Black):
+            while(beg_mov_idx != 0 and line[beg_mov_idx - 1] == data.state.Black):
                 beg_mov_idx = beg_mov_idx - 1
 
             move_size = 1 + con_idx - beg_mov_idx
-            left = move(left, beg_mov_idx, move_size)
+            line = move(line, beg_mov_idx, move_size)
 
-        elif left[con_idx] == data.state.White:
+        elif line[con_idx] == data.state.White:
             beg_mov_idx = con_idx
-            while(left[beg_mov_idx] == data.state.White):
+            while(line[beg_mov_idx] == data.state.White):
                 beg_mov_idx = beg_mov_idx - 1
+                if beg_mov_idx == -1:
+                    return -1
             end_black_val = beg_mov_idx
-            while(beg_mov_idx != 0 and left[beg_mov_idx - 1] == data.state.Black):
+            while(beg_mov_idx != 0 and line[beg_mov_idx - 1] == data.state.Black):
                 beg_mov_idx = beg_mov_idx - 1
 
             move_size = con_idx - end_black_val
-            left = move(left, beg_mov_idx, move_size)
+            line = move(line, beg_mov_idx, move_size)
+
+        if line == -1: # the move wasn't possible
+            return -1
         
-        not_con = not_cont(left)
-    return left
+        not_con = not_cont(line)
+
+    return line
 
 def move(line, beg_idx, move_size):
+    """
+    moves the blacks in line from beg_idx by move_size steps
+    """
+
     # find end value idx
     end_idx = beg_idx
-    while(line[end_idx + 1] == data.state.Black):  # to add 'end_idx != len(line)-1 and ' ?
+    while((end_idx + 1 < len(line)) and line[end_idx + 1] == data.state.Black):  # to add 'end_idx != len(line)-1 and ' ?
         end_idx += 1
 
     # check if move possible
@@ -113,6 +132,25 @@ def convert_unknown_to_white(line):
         if ret[i] == data.state.Unknown:
             ret[i] = data.state.White
     return ret
+
+def get_beginning_indexes(content):
+    """
+    for example, if I have this line:
+    · · █ █ · · █
+    return value will be [2, 6] - beginning indexes
+    """
+    indexes = []
+
+    prev_is_black = False
+
+    for i in range(len(content)):
+        if not prev_is_black and content[i] == data.state.Black:
+            indexes = indexes + [i]
+            prev_is_black = True
+        if content[i] == data.state.White:
+            prev_is_black = False
+
+    return indexes
 
 def has_diff(line1, line2):
     if len(line1) != len(line2):

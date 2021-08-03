@@ -1,7 +1,28 @@
 import tools
 import data
 
-REC_COUNTER = [0]
+"""
+solves nonogram using all possible permutations. 
+for example, consider the next line:
+
+2, 1 | _ · _ _ _ _ _  (when · is White,
+                            _ is Unknown)
+
+so the possible permutations will be:
+
+2, 1 | · · █ █ · █ ·
+2, 1 | · · █ █ · · █
+2, 1 | · · · █ █ · █
+
+So I take the intersection (the common ground)
+
+2, 1 | · · _ █ _ _ _
+
+and that's the new value of the line.
+Note: Always succeeds, but has exponential comlexity.
+"""
+
+REC_COUNTER = [0] 
 ITER_AMOUNT = min(5, data.ROWS)  # we want to take the ITER_AMOUNT best iterations
 
 def iteration():

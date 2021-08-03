@@ -1,6 +1,8 @@
 import tools
 import data
 
+
+
 def iteration():
     
     has_improvement = False
